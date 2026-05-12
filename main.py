@@ -13,7 +13,7 @@ max = latest["num"]
 class MyWindow(Gtk.ApplicationWindow):
     def __init__(self, **kargs):
         super().__init__(**kargs, title="xkcd Viewer")
-        paintable, title = fetch_xkcd(comic)
+        paintable, title, alt = fetch_xkcd(comic)
         self.img = Gtk.Picture.new_for_paintable(paintable)
 
         self.start = Gtk.Button(label="|<", hexpand=True)
@@ -31,12 +31,16 @@ class MyWindow(Gtk.ApplicationWindow):
         self.title = Gtk.Label()
         self.title.set_markup(f'<span size="x-large">{title}</span>')
 
+        self.alt = Gtk.Label(label=alt)
+
         self.outerBox = Gtk.Box()
         self.set_child(self.outerBox)
         self.outerBox.set_orientation(Gtk.Orientation.VERTICAL)
 
         self.outerBox.append(self.title)
         self.outerBox.append(self.img)
+        self.outerBox.append(self.alt)
+
 
         self.buttonBox = Gtk.Box()
         self.outerBox.append(self.buttonBox)
@@ -47,31 +51,35 @@ class MyWindow(Gtk.ApplicationWindow):
         self.buttonBox.append(self.right)
         self.buttonBox.append(self.end)
 
+
         self.present()
 
     def start_cl(self, _widget):
         global comic
         comic = 1
-        paintable, title = fetch_xkcd(comic)
+        paintable, title, alt = fetch_xkcd(comic)
         self.img.set_paintable(paintable)
         self.title.set_markup(f'<span size="x-large">{title}</span>')
+        self.alt.set_label(alt)
 
     def left_cl(self, _widget):
         global comic
         comic -= 1
         if comic < 1:
             comic += 1
-        paintable, title = fetch_xkcd(comic)
+        paintable, title, alt = fetch_xkcd(comic)
         self.img.set_paintable(paintable)
         self.title.set_markup(f'<span size="x-large">{title}</span>')
+        self.alt.set_label(alt)
 
     def random_cl(self, _widget):
         global comic
         global max
         comic = random.randint(1, max)
-        paintable, title = fetch_xkcd(comic)
+        paintable, title, alt = fetch_xkcd(comic)
         self.img.set_paintable(paintable)
         self.title.set_markup(f'<span size="x-large">{title}</span>')
+        self.alt.set_label(alt)
 
     def right_cl(self, _widget):
         global comic
@@ -79,17 +87,19 @@ class MyWindow(Gtk.ApplicationWindow):
         comic += 1
         if comic > max:
             comic -= 1
-        paintable, title = fetch_xkcd(comic)
+        paintable, title, alt = fetch_xkcd(comic)
         self.img.set_paintable(paintable)
         self.title.set_markup(f'<span size="x-large">{title}</span>')
+        self.alt.set_label(alt)
 
     def end_cl(self, _widget):
         global comic
         global max
         comic = max
-        paintable, title = fetch_xkcd(comic)
+        paintable, title, alt = fetch_xkcd(comic)
         self.img.set_paintable(paintable)
         self.title.set_markup(f'<span size="x-large">{title}</span>')
+        self.alt.set_label(alt)
 
 
 def fetch_xkcd(comicN):
@@ -98,7 +108,7 @@ def fetch_xkcd(comicN):
     url = comicInfo["img"]
     raw = requests.get(url, stream=True)
     image_file = raw.raw.read()
-    return Gdk.Texture.new_from_bytes(GLib.Bytes.new(image_file)), comicInfo["title"]
+    return Gdk.Texture.new_from_bytes(GLib.Bytes.new(image_file)), comicInfo["title"], comicInfo["alt"]
 
 
 def on_activate(app):
